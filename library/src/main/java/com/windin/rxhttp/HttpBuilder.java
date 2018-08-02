@@ -1,17 +1,22 @@
 package com.windin.rxhttp;
 
+import android.support.annotation.NonNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpBuilder {
-    private Method method;
-    private String baseUrl;
-    private String path;
-    private boolean cache;
-    private Map<String, Object> params;
-    private Map<String, String> headers;
+import io.reactivex.Observable;
+import okhttp3.Call;
 
-    private RxHttp rxHttp;
+public class HttpBuilder {
+    protected Method method;
+    protected String baseUrl;
+    protected String path;
+    protected boolean cache;
+    protected Map<String, Object> params;
+    protected Map<String, String> headers;
+
+    protected RxHttp rxHttp;
 
     private HttpBuilder() {
     }
@@ -21,19 +26,19 @@ public class HttpBuilder {
         this.rxHttp = rxHttp;
     }
 
-    HttpBuilder get(String path) {
+    HttpBuilder get(@NonNull String path) {
         method = Method.GET;
         this.path = path;
         return this;
     }
 
-    HttpBuilder post(String path) {
+    HttpBuilder post(@NonNull String path) {
         method = Method.POST;
         this.path = path;
         return this;
     }
 
-    public HttpBuilder appendParam(String key, Object value) {
+    public HttpBuilder appendParam(@NonNull String key, @NonNull Object value) {
         if (params == null) {
             params = new HashMap<>();
         }
@@ -41,7 +46,7 @@ public class HttpBuilder {
         return this;
     }
 
-    public HttpBuilder params(Map<String, Object> params) {
+    public HttpBuilder params(@NonNull Map<String, Object> params) {
         this.params = params;
         return this;
     }
@@ -51,15 +56,27 @@ public class HttpBuilder {
         return this;
     }
 
-    public GeneralObservable rx() {
-        return new GeneralObservable(rxHttp, build());
+    public Call raw() {
+        return build().newCall();
     }
 
-    public HttpObsevable raw() {
+    public HttpObsevable rawRx() {
         return new HttpObsevable(rxHttp, build());
     }
 
-    private Request build() {
+    public Observable<Response<String>> string() {
+        return rx().string();
+    }
+
+    public <T> Observable<Response<T>> json(@NonNull Class<T> clz) {
+        return rx().fromJson(clz);
+    }
+
+    private GeneralObservable rx() {
+        return new GeneralObservable(rxHttp, build());
+    }
+
+    protected Request build() {
         return Request.create(method, baseUrl, path, cache, params, headers, rxHttp);
     }
 

@@ -1,5 +1,7 @@
 package com.windin.rxhttp;
 
+import android.support.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -45,6 +47,10 @@ public class RxHttp {
         return httpBuilder().post(path);
     }
 
+    public HttpBuilder postJson(String path) {
+        return new PostJsonBuilder(this, baseUrl).post(path);
+    }
+
     private HttpBuilder httpBuilder() {
         return new HttpBuilder(this, baseUrl);
     }
@@ -54,17 +60,17 @@ public class RxHttp {
         OkHttpClient client;
         Cache cache;
 
-        public Builder url(String baseUrl) {
+        public Builder url(@NonNull String baseUrl) {
             this.baseUrl = baseUrl;
             return this;
         }
 
-        public Builder client(OkHttpClient client) {
+        public Builder client(@NonNull OkHttpClient client) {
             this.client = client;
             return this;
         }
 
-        public Builder cache(Cache cache) {
+        public Builder cache(@NonNull Cache cache) {
             this.cache = cache;
             return this;
         }

@@ -1,5 +1,7 @@
 package com.windin.rxhttp;
 
+import android.support.annotation.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -78,6 +80,9 @@ public class Cache {
         DiskLruCache.Editor editor = null;
         try {
             editor = cache.edit(safeKey);
+            if (editor == null) {
+                return;
+            }
             BufferedSink sink = Okio.buffer(editor.newSink(ENTRY_METADATA));
             sink.writeUtf8(mediaType);
             sink.writeByte('\n');
@@ -87,14 +92,23 @@ public class Cache {
 
             BufferedSink contentSink = Okio.buffer(editor.newSink(ENTRY_BODY));
             contentSink.write(source, contentLength);
-            contentSink.writeByte('\n');
             contentSink.close();
 
             editor.commit();
 
         } catch (IOException e) {
-            // TODO: 18-6-28
+            abortQuietly(editor);
             e.printStackTrace();
+        }
+    }
+
+    private void abortQuietly(@Nullable DiskLruCache.Editor editor) {
+        // Give up because the cache cannot be written.
+        try {
+            if (editor != null) {
+                editor.abort();
+            }
+        } catch (IOException ignored) {
         }
     }
 

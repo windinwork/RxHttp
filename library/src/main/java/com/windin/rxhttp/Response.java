@@ -11,7 +11,7 @@ public class Response<T> {
     private T t;
 
 
-    Response(T t, boolean cache) {
+    public Response(T t, boolean cache) {
         this.t = t;
         this.cache = cache;
     }

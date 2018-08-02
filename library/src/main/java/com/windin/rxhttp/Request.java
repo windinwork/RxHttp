@@ -26,41 +26,36 @@ public class Request {
     }
 
     HttpBuilder.Method method;
-    String baseUrl;
-    String path;
+    String url;
     boolean cache;
     Map<String, Object> params;
     Map<String, String> headers;
 
-    private RxHttp rxHttp;
+    RxHttp rxHttp;
 
-    private String cacheKey;
+    String cacheKey;
 
-    private Request(HttpBuilder.Method method, String baseUrl, String path,
-                    boolean cache, Map<String, Object> params,
-                    Map<String, String> headers,
-                    RxHttp rxHttp) {
+    Request(HttpBuilder.Method method, String baseUrl, String path,
+            boolean cache, Map<String, Object> params,
+            Map<String, String> headers,
+            RxHttp rxHttp) {
         this.method = method;
-        this.baseUrl = baseUrl;
-        this.path = path;
         this.cache = cache;
         this.params = params;
         this.headers = headers;
         this.rxHttp = rxHttp;
-    }
-
-
-    Call newCall() {
-        OkHttpClient c = rxHttp.client();
 
         String url = baseUrl;
         if (!TextUtils.isEmpty(path)) {
             url = new Uri.Builder().path(url).appendPath(path).build().getPath();
         }
+        this.url = url;
+    }
 
-        okhttp3.Request.Builder builder
-                = new okhttp3.Request.Builder()
-                .url(url);
+    protected Call newCall() {
+        OkHttpClient c = rxHttp.client();
+
+        okhttp3.Request.Builder builder = generateBuilder();
 
         switch (method) {
             case GET:
@@ -90,6 +85,24 @@ public class Request {
         return c.newCall(request);
     }
 
+    okhttp3.Request.Builder generateBuilder() {
+        return new okhttp3.Request.Builder()
+                .url(url);
+    }
+
+    String cacheKey() {
+        if (TextUtils.isEmpty(cacheKey)) {
+            // TODO: 18-6-28  and header
+            cacheKey = addParamsToUrl(url, params);
+        }
+        return cacheKey;
+    }
+
+    boolean cacheable() {
+        // TODO: 18-6-28  POST method & MediaType is FORM
+        return cache && (method == HttpBuilder.Method.GET || method == HttpBuilder.Method.POST);
+    }
+
     private String addParamsToUrl(String url, Map<String, Object> params) {
         if (TextUtils.isEmpty(url) | params == null || params.isEmpty()) {
             return url;
@@ -117,18 +130,5 @@ public class Request {
 
     private String string(Object object) {
         return String.valueOf(object);
-    }
-
-    String cacheKey() {
-        if (TextUtils.isEmpty(cacheKey)) {
-            // TODO: 18-6-28  and header
-            cacheKey = addParamsToUrl(baseUrl, params);
-        }
-        return cacheKey;
-    }
-
-    boolean cacheable() {
-        // TODO: 18-6-28  POST method & MediaType is FORM
-        return cache && (method == HttpBuilder.Method.GET || method == HttpBuilder.Method.POST);
     }
 }

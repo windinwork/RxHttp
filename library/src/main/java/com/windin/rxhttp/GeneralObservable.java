@@ -3,7 +3,6 @@ package com.windin.rxhttp;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 
@@ -71,8 +70,7 @@ public class GeneralObservable extends Observable<Response<String>> {
                 ResponseBody responseBody = Utils.createCacheBody(rxHttp, request, response);
                 String s = responseBody.string();
 
-                boolean sameAsCache = false;
-                sameAsCache = TextUtils.equals(cacheString, s);
+                boolean sameAsCache = TextUtils.equals(cacheString, s);
 
                 if (sameAsCache) {
                 } else {
@@ -100,6 +98,17 @@ public class GeneralObservable extends Observable<Response<String>> {
         }
     }
 
+    public Observable<Response<String>> string() {
+        return map(new Function<Response<String>, Response<String>>() {
+            @Override
+            public Response<String> apply(Response<String> response) throws Exception {
+                return response;
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
     public <T> Observable<Response<T>> fromJson(final Class<T> clz) {
         return map(new Function<Response<String>, Response<T>>() {
             @Override
@@ -107,8 +116,7 @@ public class GeneralObservable extends Observable<Response<String>> {
 
                 String string = response.body();
                 Gson gson = rxHttp.json();
-                T t = gson.fromJson(string, new TypeToken<T>() {
-                }.getType());
+                T t = gson.fromJson(string, clz);
 
                 return new Response<>(t, response.isCache());
             }
