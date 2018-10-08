@@ -13,6 +13,7 @@ public class HttpBuilder {
     protected String baseUrl;
     protected String path;
     protected boolean cache;
+    protected Map<String, Object> paths;
     protected Map<String, Object> params;
     protected Map<String, String> headers;
 
@@ -35,6 +36,14 @@ public class HttpBuilder {
     HttpBuilder post(@NonNull String path) {
         method = Method.POST;
         this.path = path;
+        return this;
+    }
+
+    public HttpBuilder appendPath(@NonNull String name, @NonNull Object value) {
+        if (paths == null) {
+            paths = new HashMap<>();
+        }
+        paths.put(name, value);
         return this;
     }
 
@@ -77,7 +86,7 @@ public class HttpBuilder {
     }
 
     protected Request build() {
-        return Request.create(method, baseUrl, path, cache, params, headers, rxHttp);
+        return Request.create(method, baseUrl, path, cache, paths, params, headers, rxHttp);
     }
 
     enum Method {

@@ -19,27 +19,26 @@ public class PostJsonBuilder extends HttpBuilder {
 
     @Override
     protected Request build() {
-        return PostJsonRequest.create(method, baseUrl, path, cache, params, headers, rxHttp);
+        return PostJsonRequest.create(method, baseUrl, path, cache, paths, params, headers, rxHttp);
     }
 
     static class PostJsonRequest extends Request {
 
-        public static PostJsonRequest create(HttpBuilder.Method method, String baseUrl, String path,
-                                             boolean cache, Map<String, Object> params,
+        public static PostJsonRequest create(HttpBuilder.Method method, String baseUrl, String path, boolean cache,
+                                             Map<String, Object> paths,
+                                             Map<String, Object> params,
                                              Map<String, String> headers,
                                              RxHttp rxHttp) {
-            return new PostJsonRequest(method, baseUrl, path, cache, params, headers, rxHttp);
+            return new PostJsonRequest(method, baseUrl, path, cache, paths, params, headers, rxHttp);
         }
 
-        private PostJsonRequest(Method method, String baseUrl, String path, boolean cache, Map<String, Object> params, Map<String, String> headers, RxHttp rxHttp) {
-            super(method, baseUrl, path, cache, params, headers, rxHttp);
+        private PostJsonRequest(Method method, String baseUrl, String path, boolean cache, Map<String, Object> paths, Map<String, Object> params, Map<String, String> headers, RxHttp rxHttp) {
+            super(method, baseUrl, path, cache,paths,  params, headers, rxHttp);
         }
 
         @Override
-        protected Call newCall() {
-            OkHttpClient c = rxHttp.client();
+        protected Call newCallInternal(OkHttpClient c, RequestProcessor p, okhttp3.Request.Builder builder, Map<String, Object> params) {
 
-            okhttp3.Request.Builder builder = generateBuilder();
             String content = rxHttp.json().toJson(params);
             builder.post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), content));
 

@@ -29,6 +29,8 @@ public class RxHttpService {
                         .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
                         .build())
                 .cache(new Cache(new File(context.getCacheDir(), "rxhttp"), 2 * 1024 * 1024))
+                .requestProcessor(new RxRequestsProcessor())
+                .responseProcessor(new RxResponseProcessor())
                 .build();
     }
 

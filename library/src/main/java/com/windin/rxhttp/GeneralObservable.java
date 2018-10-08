@@ -49,6 +49,7 @@ public class GeneralObservable extends Observable<Response<String>> {
         Cache cache = rxHttp.cache();
 
         String cacheString = null;
+        boolean cacheFilter = true;
         if (cache != null
                 && request.cacheable()
                 && !disposable.isDisposed()) {
@@ -57,7 +58,12 @@ public class GeneralObservable extends Observable<Response<String>> {
             if (cacheResponseBody != null) {
                 try {
                     cacheString = cacheResponseBody.string();
-                    observer.onNext(new Response<>(cacheString, true));
+
+                    // 通过缓存校验
+                    cacheFilter = rxHttp.responseProcessor().cacheFilter(cacheString);
+                    if (cacheFilter) {
+                        observer.onNext(new Response<>(cacheString, true));
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -72,7 +78,7 @@ public class GeneralObservable extends Observable<Response<String>> {
 
                 boolean sameAsCache = TextUtils.equals(cacheString, s);
 
-                if (sameAsCache) {
+                if (cacheFilter && sameAsCache) {
                 } else {
                     observer.onNext(new Response<>(s, false));
                 }
@@ -99,29 +105,10 @@ public class GeneralObservable extends Observable<Response<String>> {
     }
 
     public Observable<Response<String>> string() {
-        return map(new Function<Response<String>, Response<String>>() {
-            @Override
-            public Response<String> apply(Response<String> response) throws Exception {
-                return response;
-            }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+        return rxHttp.responseProcessor().string(this);
     }
 
     public <T> Observable<Response<T>> fromJson(final Class<T> clz) {
-        return map(new Function<Response<String>, Response<T>>() {
-            @Override
-            public Response<T> apply(Response<String> response) throws Exception {
-
-                String string = response.body();
-                Gson gson = rxHttp.json();
-                T t = gson.fromJson(string, clz);
-
-                return new Response<>(t, response.isCache());
-            }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+        return rxHttp.responseProcessor().toJson(rxHttp, this, clz);
     }
 }

@@ -9,16 +9,20 @@ import okhttp3.OkHttpClient;
 
 public class RxHttp {
 
-    private RxHttp(String baseUrl, OkHttpClient client, Cache cache) {
+    private RxHttp(String baseUrl, OkHttpClient client, Cache cache, RequestProcessor requestProcessor, ResponseProcessor responseProcessor) {
         this.baseUrl = baseUrl;
         this.client = client;
         this.cache = cache;
+        this.responseProcessor = responseProcessor;
+        this.requestProcessor = requestProcessor;
     }
 
     private String baseUrl;
     private OkHttpClient client;
     private Cache cache;
     private Gson gson;
+    private ResponseProcessor responseProcessor;
+    private RequestProcessor requestProcessor;
 
     public OkHttpClient client() {
         return client;
@@ -33,6 +37,28 @@ public class RxHttp {
             }
         }
         return gson;
+    }
+
+    public RequestProcessor requestProcessor() {
+        if (requestProcessor == null) {
+            synchronized (RxHttp.class) {
+                if (requestProcessor == null) {
+                    requestProcessor = new RequestProcessor();
+                }
+            }
+        }
+        return requestProcessor;
+    }
+
+    public ResponseProcessor responseProcessor() {
+        if (responseProcessor == null) {
+            synchronized (RxHttp.class) {
+                if (responseProcessor == null) {
+                    responseProcessor = new ResponseProcessor();
+                }
+            }
+        }
+        return responseProcessor;
     }
 
     public Cache cache() {
@@ -59,6 +85,8 @@ public class RxHttp {
         String baseUrl;
         OkHttpClient client;
         Cache cache;
+        ResponseProcessor responseProcessor;
+        RequestProcessor requestProcessor;
 
         public Builder url(@NonNull String baseUrl) {
             this.baseUrl = baseUrl;
@@ -75,6 +103,16 @@ public class RxHttp {
             return this;
         }
 
+        public Builder responseProcessor(@NonNull ResponseProcessor processor) {
+            this.responseProcessor = processor;
+            return this;
+        }
+
+        public Builder requestProcessor(@NonNull RequestProcessor processor) {
+            this.requestProcessor = processor;
+            return this;
+        }
+
         public RxHttp build() {
             if (baseUrl == null) {
                 throw new NullPointerException("The base url can not be empty");
@@ -82,7 +120,7 @@ public class RxHttp {
             if (client == null) {
                 client = new OkHttpClient.Builder().build();
             }
-            return new RxHttp(baseUrl, client, cache);
+            return new RxHttp(baseUrl, client, cache, requestProcessor, responseProcessor);
         }
     }
 }

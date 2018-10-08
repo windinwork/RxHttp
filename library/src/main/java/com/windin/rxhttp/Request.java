@@ -18,16 +18,18 @@ import okhttp3.RequestBody;
  */
 public class Request {
 
-    public static Request create(HttpBuilder.Method method, String baseUrl, String path,
-                                 boolean cache, Map<String, Object> params,
+    public static Request create(HttpBuilder.Method method, String baseUrl, String path, boolean cache,
+                                 Map<String, Object> paths,
+                                 Map<String, Object> params,
                                  Map<String, String> headers,
                                  RxHttp rxHttp) {
-        return new Request(method, baseUrl, path, cache, params, headers, rxHttp);
+        return new Request(method, baseUrl, path, cache, paths, params, headers, rxHttp);
     }
 
     HttpBuilder.Method method;
     String url;
     boolean cache;
+    Map<String, Object> paths;
     Map<String, Object> params;
     Map<String, String> headers;
 
@@ -36,26 +38,35 @@ public class Request {
     String cacheKey;
 
     Request(HttpBuilder.Method method, String baseUrl, String path,
-            boolean cache, Map<String, Object> params,
+            boolean cache, Map<String, Object> paths, Map<String, Object> params,
             Map<String, String> headers,
             RxHttp rxHttp) {
         this.method = method;
         this.cache = cache;
+        this.paths = paths;
         this.params = params;
         this.headers = headers;
         this.rxHttp = rxHttp;
 
         String url = baseUrl;
         if (!TextUtils.isEmpty(path)) {
+            path = Utils.addPathParam(path, paths);
             url = new Uri.Builder().path(url).appendPath(path).build().getPath();
         }
         this.url = url;
     }
 
-    protected Call newCall() {
+    final Call newCall() {
         OkHttpClient c = rxHttp.client();
+        RequestProcessor p = rxHttp.requestProcessor();
 
         okhttp3.Request.Builder builder = generateBuilder();
+        Map<String, Object> params = p.paramsFilter(this.params);
+
+        return newCallInternal(c, p, builder, params);
+    }
+
+    protected Call newCallInternal(OkHttpClient c, RequestProcessor p, okhttp3.Request.Builder builder, Map<String, Object> params) {
 
         switch (method) {
             case GET:
@@ -64,7 +75,7 @@ public class Request {
                 break;
             case POST:
                 // TODO: 18-6-27  only support form
-                builder.post(createFormBody());
+                builder.post(createFormBody(params));
                 break;
             case HEAD:
                 // TODO: 18-6-27  builder.head();
@@ -93,6 +104,8 @@ public class Request {
     String cacheKey() {
         if (TextUtils.isEmpty(cacheKey)) {
             // TODO: 18-6-28  and header
+            RequestProcessor p = rxHttp.requestProcessor();
+            Map<String, Object> params = p.paramsFilter(this.params);
             cacheKey = addParamsToUrl(url, params);
         }
         return cacheKey;
@@ -115,7 +128,7 @@ public class Request {
         return builder.build().toString();
     }
 
-    private RequestBody createFormBody() {
+    private RequestBody createFormBody(Map<String, Object> params) {
         FormBody.Builder builder = new FormBody.Builder();
 
         if (params != null && !params.isEmpty()) {
