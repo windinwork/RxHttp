@@ -20,14 +20,16 @@ public class Request {
 
     public static Request create(HttpBuilder.Method method, String baseUrl, String path, boolean cache,
                                  Map<String, Object> paths,
+                                 String requestBody,
                                  Map<String, Object> params,
                                  Map<String, String> headers,
                                  RxHttp rxHttp) {
-        return new Request(method, baseUrl, path, cache, paths, params, headers, rxHttp);
+        return new Request(method, baseUrl, path, cache, paths, requestBody, params, headers, rxHttp);
     }
 
     HttpBuilder.Method method;
     String url;
+    String requestBody;
     boolean cache;
     Map<String, Object> paths;
     Map<String, Object> params;
@@ -38,12 +40,13 @@ public class Request {
     String cacheKey;
 
     Request(HttpBuilder.Method method, String baseUrl, String path,
-            boolean cache, Map<String, Object> paths, Map<String, Object> params,
+            boolean cache, Map<String, Object> paths, String requestBody, Map<String, Object> params,
             Map<String, String> headers,
             RxHttp rxHttp) {
         this.method = method;
         this.cache = cache;
         this.paths = paths;
+        this.requestBody = requestBody;
         this.params = params;
         this.headers = headers;
         this.rxHttp = rxHttp;

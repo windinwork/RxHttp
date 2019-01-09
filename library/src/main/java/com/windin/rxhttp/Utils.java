@@ -29,7 +29,7 @@ public class Utils {
         Buffer buffer = new Buffer();
         body.source().readAll(buffer);
 
-        if (request.cacheable()) {
+        if (request.cacheable() && rxHttp.responseProcessor().responseSuccessful(response)) {
             Cache cache = rxHttp.cache();
             if (cache != null) {
                 cache.put(request.cacheKey(), ResponseBody.create(body.contentType(), buffer.size(), buffer.clone()));

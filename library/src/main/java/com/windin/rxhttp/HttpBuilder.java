@@ -12,6 +12,7 @@ public class HttpBuilder {
     protected Method method;
     protected String baseUrl;
     protected String path;
+    protected String requestBody;
     protected boolean cache;
     protected Map<String, Object> paths;
     protected Map<String, Object> params;
@@ -55,6 +56,11 @@ public class HttpBuilder {
         return this;
     }
 
+    public HttpBuilder body(String content) {
+        this.requestBody = content;
+        return this;
+    }
+
     public HttpBuilder params(@NonNull Map<String, Object> params) {
         this.params = params;
         return this;
@@ -86,7 +92,7 @@ public class HttpBuilder {
     }
 
     protected Request build() {
-        return Request.create(method, baseUrl, path, cache, paths, params, headers, rxHttp);
+        return Request.create(method, baseUrl, path, cache, paths, requestBody, params, headers, rxHttp);
     }
 
     enum Method {

@@ -2,18 +2,13 @@ package com.windin.rxhttp;
 
 import android.text.TextUtils;
 
-import com.google.gson.Gson;
-
 import java.io.IOException;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.exceptions.CompositeException;
 import io.reactivex.exceptions.Exceptions;
-import io.reactivex.functions.Function;
 import io.reactivex.plugins.RxJavaPlugins;
-import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.ResponseBody;
 

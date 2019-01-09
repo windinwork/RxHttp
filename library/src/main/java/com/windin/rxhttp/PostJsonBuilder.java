@@ -1,5 +1,7 @@
 package com.windin.rxhttp;
 
+import android.text.TextUtils;
+
 import java.util.Map;
 
 import okhttp3.Call;
@@ -19,27 +21,33 @@ public class PostJsonBuilder extends HttpBuilder {
 
     @Override
     protected Request build() {
-        return PostJsonRequest.create(method, baseUrl, path, cache, paths, params, headers, rxHttp);
+        return PostJsonRequest.create(method, baseUrl, path, cache, paths, requestBody, params, headers, rxHttp);
     }
 
     static class PostJsonRequest extends Request {
 
         public static PostJsonRequest create(HttpBuilder.Method method, String baseUrl, String path, boolean cache,
                                              Map<String, Object> paths,
+                                             String requestBody,
                                              Map<String, Object> params,
                                              Map<String, String> headers,
                                              RxHttp rxHttp) {
-            return new PostJsonRequest(method, baseUrl, path, cache, paths, params, headers, rxHttp);
+            return new PostJsonRequest(method, baseUrl, path, cache, paths, requestBody, params, headers, rxHttp);
         }
 
-        private PostJsonRequest(Method method, String baseUrl, String path, boolean cache, Map<String, Object> paths, Map<String, Object> params, Map<String, String> headers, RxHttp rxHttp) {
-            super(method, baseUrl, path, cache,paths,  params, headers, rxHttp);
+        private PostJsonRequest(Method method, String baseUrl, String path, boolean cache, Map<String, Object> paths, String requestBody, Map<String, Object> params, Map<String, String> headers, RxHttp rxHttp) {
+            super(method, baseUrl, path, cache, paths, requestBody, params, headers, rxHttp);
         }
 
         @Override
         protected Call newCallInternal(OkHttpClient c, RequestProcessor p, okhttp3.Request.Builder builder, Map<String, Object> params) {
 
-            String content = rxHttp.json().toJson(params);
+            String content;
+            if (TextUtils.isEmpty(requestBody)) {
+                content = rxHttp.json().toJson(params);
+            } else {
+                content = requestBody;
+            }
             builder.post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), content));
 
             okhttp3.Request request = builder.build();
